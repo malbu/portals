@@ -7,7 +7,7 @@ import sys
 
 
 # IP address of the Jetson Nano connecting to
-REMOTE_IP = "192.168.1.101" #this sometimes seem to change; make a different subnet; switch to static IP
+REMOTE_IP = "192.168.1.102" #this sometimes seem to change; make a different subnet; switch to static IP
                             
 PORT = 5001 #same on both Jetsons
 
