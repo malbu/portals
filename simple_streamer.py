@@ -103,8 +103,8 @@ def receiver():
 
     while running:
         try:
-            # Receive data (set buffer size large enough for a frame)
-            data, addr = receiver_socket.recvfrom(65536) # max UDP packet size is ~64KB
+            # receive data
+            data, addr = receiver_socket.recvfrom(65536) 
 
             if not data:
                 continue # no data received within timeout
@@ -115,7 +115,6 @@ def receiver():
 
             if frame is None:
                 # print(f"Receiver: Failed to decode frame from {addr}")
-                # debug corrupt or imcomplete udp frame
                 continue
 
             # display received frame
