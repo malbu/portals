@@ -58,7 +58,7 @@ def sender():
         # send the encoded frame
         try:
             
-            # for simplicity for now, we send directly
+            # send directly for now instead of chunking
             # check if the frame is too large for UDP
             sender_socket.sendto(encoded_frame.tobytes(), (REMOTE_IP, PORT))
         except socket.error as e:
