@@ -30,7 +30,7 @@ class DisplayManager:
         f2 = cv2.resize(f2, (int(f2.shape[1]*h/f2.shape[0]), h))
         comp = np.concatenate([f1, f2], axis=1)
         cv2.imshow(self.title, comp)
-        cv2.setWindowTitle(self.title, f"{self.title} – {n1} | {n2}")
+        cv2.setWindowTitle(self.title, f"{self.title} - {n1} | {n2}")
 
 
     def key(self):
