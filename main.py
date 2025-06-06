@@ -29,9 +29,13 @@ class VideoStreamerApp:
 
 
     def _encode_and_send(self, frame):
-        jpeg = encode_bgr_to_jpeg(frame, config.JPEG_QUALITY)
-        print('SEND -> jpeg', len(jpeg), 'bytes')
-        self.net.send_jpeg(jpeg)
+        print('ENC task start')
+        try:
+            jpeg = encode_bgr_to_jpeg(frame, config.JPEG_QUALITY)
+            print('SEND -> jpeg', len(jpeg), 'bytes')
+            self.net.send_jpeg(jpeg)
+        except Exception as e:
+            print('ENC task EXCEPTION', e)
 
 
     def _receiver_loop(self):
