@@ -42,9 +42,12 @@ class VideoStreamerApp:
 
     
     def run(self):
-        t_capture = threading.Thread(target=self._capture_loop, daemon=True)
-        t_recv    = threading.Thread(target=self._receiver_loop, daemon=True)
-        t_capture.start(); t_recv.start()
+        self.t_capture = threading.Thread(target=self._capture_loop)
+        self.t_recv    = threading.Thread(target=self._receiver_loop)
+
+        self.t_capture.start()
+        self.t_recv.start()
+
         while self.running:
             k = self.disp.key()
             if k != 255 and k != -1:
@@ -68,8 +71,18 @@ class VideoStreamerApp:
 
 
     def cleanup(self):
+        # signal worker threads to stop
         self.running = False
-        self.pool.shutdown(wait=False)
+
+        # wait for capture and receiver threads to finish 
+        if hasattr(self, 't_capture'):
+            self.t_capture.join(timeout=2.0)
+        if hasattr(self, 't_recv'):
+            self.t_recv.join(timeout=2.0)
+
+        # all encode tasks must be done before closing the sockets
+        self.pool.shutdown(wait=True)
+
         self.cam.release()
         self.net.close()
         self.disp.close()
