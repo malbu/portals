@@ -21,7 +21,7 @@ class CameraManager:
         self.frame_time   = 1.0 / config.FPS_LIMIT if config.FPS_LIMIT else 0
         self.last_capture = 0.0
 
-        print('[INFO] capture thread running')
+        # print('[INFO] capture thread running')  
 
 
     def capture(self):
@@ -29,8 +29,8 @@ class CameraManager:
         if now - self.last_capture < self.frame_time:
             return None
         ret, frame = self.cap.read()
-        print('CAP ret=', ret, '; shape=',
-              None if frame is None else frame.shape)
+        # print('CAP ret=', ret, '; shape=',
+        #       None if frame is None else frame.shape)  
         if not ret:
             return None
         self.last_capture = now
