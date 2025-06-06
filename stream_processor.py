@@ -5,7 +5,7 @@ from codec_utils import decode_jpeg_to_bgr
 _HDR = struct.Struct('!HHH')
 
 #  datagrams that would lead to excessive memory use or invalid indices are now rejected
-_MAX_CHUNKS = 64  # With 1.3 kB chunks and 480p/50 % quality JPEG, 64 is plenty
+_MAX_CHUNKS = 128  # With 1.3 kB chunks and 480p/50 % quality JPEG, 64 is plenty
 
 
 class StreamProcessor:
