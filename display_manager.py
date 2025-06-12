@@ -4,7 +4,18 @@ import cv2, numpy as np
 class DisplayManager:
     def __init__(self, window_title="Stream"):
         self.title = window_title
-        cv2.namedWindow(self.title, cv2.WINDOW_AUTOSIZE)
+        # create a resizable window first
+        cv2.namedWindow(self.title, cv2.WINDOW_NORMAL)
+
+        # try to switch the window to fullscreen regardless of single or dual view layout
+        try:
+            cv2.setWindowProperty(self.title, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+        except Exception:
+            
+            try:
+                cv2.setWindowProperty(self.title, cv2.WND_PROP_FULLSCREEN, 1)
+            except Exception:
+                pass
 
 
     def _placeholder(self, text, h=480, w=640):

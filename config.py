@@ -18,16 +18,22 @@ FRAME_HEIGHT      = 480
 JPEG_QUALITY      = 45           # switching to TurboJPEG for encode/decode for speed/ quality 1‑100
 FPS_LIMIT         = 30
 MAX_DATAGRAM      = 1300         # payload size per UDP packet 
-FRAME_DEQUE_LEN   = 5            # per‑peer history depth
+FRAME_DEQUE_LEN   = 5            # per peer history depth
 
 def get_key_mappings(my_id, peer_info):
-    other = [pid for pid in peer_info if pid != my_id]
-    m = {ord('q'): 'quit', ord('m'): 'toggle_dual_view'}
-    if len(other) > 0:
-        m[ord('1')] = other[0]
-    if len(other) > 1:
-        m[ord('2')] = other[1]
-    return m
+    """Return key-action mapping.
+
+    Rotate view with "1" key
+    1 - rotate view (single peer 1 -> single peer 2 -> dual view -> single peer 1 ->...)
+
+    q - quit
+    """
+
+    # keep sig unchanged even though no longer depend on peer_info.
+    return {
+        ord('q'): 'quit',
+        ord('1'): 'rotate_view',
+    }
 
 KEY_MAPPINGS = get_key_mappings(MY_ID, PEER_NANO_INFO)
 
