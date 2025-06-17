@@ -20,8 +20,17 @@ FPS_LIMIT         = 30
 MAX_DATAGRAM      = 1300         # payload size per UDP packet 
 FRAME_DEQUE_LEN   = 5            # per peer history depth
 
+
+# folder for 640x480 mp4 clips
+CLIP_DIR          = "/opt/stream_transitions"
+# chance 0.0-1.0 that a video is played during a view switch
+TRANSITION_CHANCE = 0.5
+# duration that a GPU glitch effect is applied to the live stream
+# immediately after switching (seconds)
+GLITCH_SEC        = 20.0
+
 def get_key_mappings(my_id, peer_info):
-    """Return key-action mapping.
+    """Return key-action mapping
 
     Rotate view with "1" key
     1 - rotate view (single peer 1 -> single peer 2 -> dual view -> single peer 1 ->...)
@@ -29,7 +38,7 @@ def get_key_mappings(my_id, peer_info):
     q - quit
     """
 
-    # keep sig unchanged even though no longer depend on peer_info.
+
     return {
         ord('q'): 'quit',
         ord('1'): 'rotate_view',
