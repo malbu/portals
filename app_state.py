@@ -1,74 +1,121 @@
 class AppState:
+    """
+    view_mode values:
+        SINGLE  ``single_target``
+        DUAL    first two peers in ``other_ids``
+        TRANSITION clip playing, new view pending activation
+    """
+
     def __init__(self, my_id, peer_info, keymap):
         self.my_id = my_id
         self.peer_info = peer_info
         self.keymap = keymap
-        self.view_mode = 'SINGLE'
+
         self.other_ids = [pid for pid in peer_info if pid != my_id]
-        self.single_target = self.other_ids[0] if self.other_ids else None  # default target
+        self.view_mode: str = 'SINGLE'
+        self.single_target = self.other_ids[0] if self.other_ids else None
+
+        # pending view requested while a transition clip is playing
+        self._pending_mode = None  # type: str | None
+        self._pending_target = None  # type: str | None
 
 
     def handle_key(self, k):
+        """Return action dict understood by main loop
+
+        Possible return values:
+            {'action': 'QUIT'}
+            {'action': 'SWITCH', 'next_mode': <mode>, 'next_target': <target or None>}
+            None - key not mapped
+        """
+
         act = self.keymap.get(k)
         if act == 'quit':
-            return 'QUIT'
+            return {'action': 'QUIT'}
 
-        # rotate through single-view peer 1 -> single-view peer 2 -> dual view 
         if act == 'rotate_view':
-            return self._rotate_view()
-
+            next_mode, next_target = self._compute_next_view()
+            if next_mode:
+                return {
+                    'action': 'SWITCH',
+                    'next_mode': next_mode,
+                    'next_target': next_target,
+                }
         return None
 
-    def _rotate_view(self):
-        """Advance the view mode in the sequence:
 
-        single(other_ids[0]) -> single(other_ids[1]) -> dual ->single(other_ids[0]) -> …
-        Edge case for testing:  Fewer than two peers are available; dual view is skipped
-        Returns:
-        status string consumed by the caller to decide whether a UI
-        update is needed: 
-        1) 'VIEW' when only the single-target changed
-         2) 'MODE' when view_mode changed
-        3) else None
-        """
+    def _compute_next_view(self):
+        """determine what the next view would be without mutating state"""
 
         num_peers = len(self.other_ids)
         if num_peers == 0:
-            return None
+            return None, None
 
-        # currently in SINGLE view
         if self.view_mode == 'SINGLE':
             try:
                 idx = self.other_ids.index(self.single_target)
             except ValueError:
                 idx = 0
 
-            if num_peers >= 2 and idx == 0:  # switch to peer #2 single view
-                self.single_target = self.other_ids[1]
-                return 'VIEW'
+            if num_peers >= 2 and idx == 0:
+                # switch to peer #2 single view
+                return 'SINGLE', self.other_ids[1]
 
-            # either there is only one peer, or already showing peer #2
             if num_peers >= 2:
-                self.view_mode = 'DUAL'
-                return 'MODE'
-            else:
-                # only one peer, nothing to rotate
-                return None
+                # move to dual view
+                return 'DUAL', None
 
-        # currently in DUAL view -> go back to first peer single view
-        else:
-            self.view_mode = 'SINGLE'
-            self.single_target = self.other_ids[0]
-            return 'MODE'
+            # only one peer – stay the same
+            return None, None
+
+        elif self.view_mode == 'DUAL':
+            # go back to first peer single view
+            return 'SINGLE', self.other_ids[0]
+
+        elif self.view_mode == 'TRANSITION':
+            # currently showing clip; ignore rotations until finished
+            return None, None
+
+        return None, None
+
+
+    def queue_pending_view(self, mode, single_target=None):
+        """enter TRANSITION mode and remember the target view
+
+        Called by main loop when a clip will be shown
+        """
+        self._pending_mode = mode
+        self._pending_target = single_target
+        self.view_mode = 'TRANSITION'
+
+    def activate_view(self, mode, single_target=None):
+        self.view_mode = mode
+        if mode == 'SINGLE':
+            self.single_target = single_target
+
+    def activate_pending_view(self):
+        if self._pending_mode is None:
+            return
+        self.activate_view(self._pending_mode, self._pending_target)
+        self._pending_mode = None
+        self._pending_target = None
 
 
     def current_single_ip(self):
         return self.peer_info[self.single_target]['ip'] if self.single_target else None
 
-
     def current_single_name(self):
         return self.peer_info[self.single_target]['name'] if self.single_target else 'N/A'
 
-
     def dual_targets(self):
         return [self.peer_info[pid] for pid in self.other_ids[:2]] if len(self.other_ids) >= 1 else []
+
+    def current_view_peer_ips(self):
+        """return list of peer IPs currently visible in the UI."""
+        if self.view_mode == 'SINGLE':
+            ip = self.current_single_ip()
+            return [ip] if ip else []
+        elif self.view_mode == 'DUAL':
+            return [t['ip'] for t in self.dual_targets()]
+        else:
+            return []
