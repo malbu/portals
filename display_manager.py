@@ -50,3 +50,12 @@ class DisplayManager:
 
     def close(self):
         cv2.destroyAllWindows()
+
+
+    def show_fullscreen(self, frame):
+        """render a frame that matches the fullscreen window size
+        if frame is None draw placeholder to keep the window active
+        """
+        if frame is None:
+            frame = np.zeros((480, 640, 3), dtype=np.uint8)
+        cv2.imshow(self.title, frame)

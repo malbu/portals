@@ -1,10 +1,12 @@
-import threading, time, concurrent.futures, config, cv2
+import threading, time, concurrent.futures, random, config, cv2
 from camera_manager import CameraManager
 from network_manager import NetworkManager
 from stream_processor import StreamProcessor
 from display_manager import DisplayManager
 from app_state import AppState
 from codec_utils import encode_bgr_to_jpeg
+from transition_manager import TransitionManager
+from effect_manager import EffectManager
 
 
 class VideoStreamerApp:
@@ -15,6 +17,9 @@ class VideoStreamerApp:
         self.proc = StreamProcessor([p['ip'] for p in peers])
         self.disp = DisplayManager(window_title=config.PEER_NANO_INFO[config.MY_ID]['name'])
         self.state= AppState(config.MY_ID, config.PEER_NANO_INFO, config.KEY_MAPPINGS)
+        self.trans = TransitionManager(config.CLIP_DIR, config.TRANSITION_CHANCE,
+                                       window_size=(config.FRAME_WIDTH, config.FRAME_HEIGHT))
+        self.effects = EffectManager()
         self.running = True
         self.pool = concurrent.futures.ThreadPoolExecutor(max_workers=2)
 
@@ -57,21 +62,51 @@ class VideoStreamerApp:
         while self.running:
             k = self.disp.key()
             if k != 255 and k != -1:
-                if self.state.handle_key(k) == 'QUIT':
+                action = self.state.handle_key(k)
+                if action and action.get('action') == 'QUIT':
                     self.running = False
                     break
-            if self.state.view_mode == 'SINGLE':
+                if action and action.get('action') == 'SWITCH':
+                    next_mode   = action['next_mode']
+                    next_target = action['next_target']
+
+                    played = self.trans.arm_transition()
+                    if played:
+                        # clip will play; queue view for later
+                        self.state.queue_pending_view(next_mode, next_target)
+                    else:
+                        # switch immediately and start glitch
+                        self.state.activate_view(next_mode, next_target)
+                        ips = self.state.current_view_peer_ips()
+                        self.effects.start_glitch(ips, config.GLITCH_SEC)
+
+            # render according to current mode
+            if self.state.view_mode == 'TRANSITION':
+                frame, done = self.trans.next_frame()
+                self.disp.show_fullscreen(frame)
+                if done:
+                    # apply pending view and start glitch
+                    self.state.activate_pending_view()
+                    ips = self.state.current_view_peer_ips()
+                    self.effects.start_glitch(ips, config.GLITCH_SEC)
+
+            elif self.state.view_mode == 'SINGLE':
                 ip = self.state.current_single_ip()
                 name = self.state.current_single_name()
                 frame = self.proc.latest(ip) if ip else None
+                frame = self.effects.apply(ip, frame) if ip else frame
                 self.disp.show_single(frame, name)
-            else:
+
+            else:  # DUAL
                 t = self.state.dual_targets()
                 if len(t) == 2:
                     f1 = self.proc.latest(t[0]['ip']); f2 = self.proc.latest(t[1]['ip'])
+                    f1 = self.effects.apply(t[0]['ip'], f1)
+                    f2 = self.effects.apply(t[1]['ip'], f2)
                     self.disp.show_dual(f1, t[0]['name'], f2, t[1]['name'])
                 elif len(t) == 1:
-                    f1 = self.proc.latest(t[0]['ip']); self.disp.show_single(f1, t[0]['name'])
+                    f1 = self.proc.latest(t[0]['ip']); f1 = self.effects.apply(t[0]['ip'], f1)
+                    self.disp.show_single(f1, t[0]['name'])
             time.sleep(0.01)
         self.cleanup()
 
