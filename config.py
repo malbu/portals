@@ -5,7 +5,7 @@ MY_ID = 'nano_A'   #todo this has to be changed on each nano after cloning repo
 #     'nano_C': {'ip': '192.168.1.103', 'name': 'Jetson_C'},
 # }
 
-# testing on one nano, using loopback 
+## testing on one nano, using loopback 
 PEER_NANO_INFO = {
     'nano_A': {'ip': '127.0.0.1', 'name': 'Me'},
     'nano_B': {'ip': '127.0.0.1', 'name': 'Loopy_B'},
