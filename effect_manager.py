@@ -76,7 +76,9 @@ class EffectManager:
             b, g, r = cv2.cuda.split(gpu)
             # affine matrix for shift
             M = np.float32([[1, 0, shift_x], [0, 1, shift_y]])
-            g_shift = cv2.cuda.warpAffine(g, M, (g.size()[1], g.size()[0]))
+            # destination size (width, height) must match original frame
+            h_src, w_src = frame.shape[:2]
+            g_shift = cv2.cuda.warpAffine(g, M, (w_src, h_src))
             merged = cv2.cuda.merge([b, g_shift, r])
             return merged.download()
 
