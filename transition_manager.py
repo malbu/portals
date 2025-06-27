@@ -25,9 +25,13 @@ class TransitionManager:
             return False
 
         clip_path = str(random.choice(self.clip_paths))
+        # try GStreamer first for hardware-accelerated decode on Jetson
         cap = cv2.VideoCapture(clip_path, cv2.CAP_GSTREAMER)
         if not cap.isOpened():
-            # failed to open, skip transition
+            # Fallback to any available backend
+            cap = cv2.VideoCapture(clip_path)
+        if not cap.isOpened():
+            # failed to open with any backend, skip transition
             return False
 
         # warm-up read to prime decoder; ignore content
