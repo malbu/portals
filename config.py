@@ -1,16 +1,16 @@
 MY_ID = 'nano_A'   #todo this has to be changed on each nano after cloning repo
-# PEER_NANO_INFO = {
-#     'nano_A': {'ip': '192.168.1.101', 'name': 'Jetson_A'}, #cloning repo vs clone microSD card could lead to issues; might need to manually rename after
-#     'nano_B': {'ip': '192.168.1.102', 'name': 'Jetson_B'},
-#     'nano_C': {'ip': '192.168.1.103', 'name': 'Jetson_C'},
-# }
+PEER_NANO_INFO = {
+    'nano_A': {'ip': '192.168.2.135', 'name': 'Jetson_A'}, #cloning repo vs clone microSD card could lead to issues; might need to manually rename after
+    'nano_B': {'ip': '192.168.2.130', 'name': 'Jetson_B'},
+    'nano_C': {'ip': '192.168.2.133', 'name': 'Jetson_C'},
+}
 
 ## testing on one nano, using loopback 
-PEER_NANO_INFO = {
-    'nano_A': {'ip': '127.0.0.1', 'name': 'Me'},
-    'nano_B': {'ip': '127.0.0.1', 'name': 'Loopy_B'},
-    'nano_C': {'ip': '127.0.0.1', 'name': 'Loopy_C'},
-}
+# PEER_NANO_INFO = {
+#     'nano_A': {'ip': '127.0.0.1', 'name': 'Me'},
+#     'nano_B': {'ip': '127.0.0.1', 'name': 'Loopy_B'},
+#     'nano_C': {'ip': '127.0.0.1', 'name': 'Loopy_C'},
+# }
 UDP_PORT          = 5005
 CAMERA_SRC        = 0
 FRAME_WIDTH       = 640
