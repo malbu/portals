@@ -42,7 +42,7 @@ class ButtonListener:
                     if not line:
                         continue
                     # Debug
-                    # print("[BTN]", line)
+                    print("[BTN]", line)
                     if line == "BUTTON2_RELEASED":
                         self.callback(ord('1'))
             except Exception as e:
