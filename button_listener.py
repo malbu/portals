@@ -42,8 +42,8 @@ class ButtonListener:
                     if not line:
                         continue
                     # Debug
-                    print("[BTN]", line)
-                    if line == "BUTTON2_RELEASED":
+                    print("[BTN RAW]", repr(line))
+                    if line in ("BUTTON2_RELEASED", "BUTTON3_RELEASED"):
                         self.callback(ord('1'))
             except Exception as e:
                 # tolerate serial errors; keep trying
