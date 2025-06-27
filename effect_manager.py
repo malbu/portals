@@ -63,6 +63,12 @@ class EffectManager:
             return self._noise_overlay(frame)
 
 
+    @staticmethod
+    def _to_cpu(mat):
+        """return a numpy array whether mat is a cv2.cuda_GpuMat or already CPU"""
+        if mat is None:
+            return None
+        return mat.download() if hasattr(mat, 'download') else mat
 
     def _channel_shift(self, frame):
         # small random translation for G channel
@@ -80,7 +86,7 @@ class EffectManager:
             h_src, w_src = frame.shape[:2]
             g_shift = cv2.cuda.warpAffine(g, M, (w_src, h_src))
             merged = cv2.cuda.merge([b, g_shift, r])
-            return merged.download()
+            return self._to_cpu(merged)
 
         # # CPU fallback 
         # g = np.roll(frame[:, :, 1], shift_x, axis=1)
@@ -107,7 +113,7 @@ class EffectManager:
             gpu_ymap = cv2.cuda_GpuMat()
             gpu_ymap.upload(ymap)
             warped = cv2.cuda.remap(gpu_frame, gpu_xmap, gpu_ymap, interpolation=cv2.INTER_LINEAR)
-            return warped.download()
+            return self._to_cpu(warped)
 
         # # CPU fallback
         # for y in range(h):
@@ -126,7 +132,7 @@ class EffectManager:
             gpu_noise.upload(noise)
             noise_bgr = cv2.cuda.cvtColor(gpu_noise, cv2.COLOR_GRAY2BGR)
             out_gpu = cv2.cuda.addWeighted(gpu_frame, 1.0, noise_bgr, alpha, 0.0)
-            return out_gpu.download()
+            return self._to_cpu(out_gpu)
 
         # noise = np.random.randint(0, 256, frame.shape[:2], dtype=np.uint8)
         # noise_bgr = cv2.cvtColor(noise, cv2.COLOR_GRAY2BGR)
