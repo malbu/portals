@@ -22,7 +22,7 @@ FRAME_DEQUE_LEN   = 5            # per peer history depth
 
 
 # folder for 640x480 mp4 clips
-CLIP_DIR          = "~/firefly2025/stream_transitions"
+CLIP_DIR          = "/home/kineolabs/firefly2025/stream_transitions"
 # chance 0.0-1.0 that a video is played during a view switch
 TRANSITION_CHANCE = 0.5
 # duration that a GPU glitch effect is applied to the live stream
