@@ -29,6 +29,10 @@ TRANSITION_CHANCE = 0.5
 # immediately after switching (seconds)
 GLITCH_SEC        = 20.0
 
+# serial port for external button controller
+ARDUINO_PORT      = 'auto'  
+ARDUINO_BAUD      = 9600
+
 def get_key_mappings(my_id, peer_info):
     """Return key-action mapping
 

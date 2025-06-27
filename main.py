@@ -1,4 +1,4 @@
-import threading, time, concurrent.futures, random, config, cv2
+import threading, time, concurrent.futures, random, config, cv2, queue
 from camera_manager import CameraManager
 from network_manager import NetworkManager
 from stream_processor import StreamProcessor
@@ -7,6 +7,7 @@ from app_state import AppState
 from codec_utils import encode_bgr_to_jpeg
 from transition_manager import TransitionManager
 from effect_manager import EffectManager
+from button_listener import ButtonListener
 
 
 class VideoStreamerApp:
@@ -24,6 +25,16 @@ class VideoStreamerApp:
         self.pool = concurrent.futures.ThreadPoolExecutor(max_workers=2)
         # last captured local frame for LOCAL view
         self._latest_local_frame = None
+
+        # queue for keys coming from external button controller
+        self._key_queue: "queue.Queue[int]" = queue.Queue()
+
+        # start button listener if serial port configured
+        if getattr(config, 'ARDUINO_PORT', None):
+            self.btn_listener = ButtonListener(config.ARDUINO_PORT, getattr(config, 'ARDUINO_BAUD', 9600),
+                                               self._enqueue_key)
+        else:
+            self.btn_listener = None
 
 
     # background threads
@@ -63,7 +74,11 @@ class VideoStreamerApp:
         self.t_recv.start()
 
         while self.running:
-            k = self.disp.key()
+            # fetch key from external queue if any; otherwise poll cv2 window
+            try:
+                k = self._key_queue.get_nowait()
+            except queue.Empty:
+                k = self.disp.key()
             if k != 255 and k != -1:
                 action = self.state.handle_key(k)
                 if action and action.get('action') == 'QUIT':
@@ -143,7 +158,17 @@ class VideoStreamerApp:
         self.cam.release()
         self.net.close()
         self.disp.close()
+        if self.btn_listener:
+            self.btn_listener.stop()
         cv2.destroyAllWindows()
+
+
+    def _enqueue_key(self, key_code: int):
+        """callback invoked by ButtonListener thread"""
+        try:
+            self._key_queue.put_nowait(key_code)
+        except queue.Full:
+            pass
 
 
 if __name__ == '__main__':
