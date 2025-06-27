@@ -1,14 +1,15 @@
 import threading, serial, time
+from typing import Optional
 from serial.tools import list_ports
 
 class ButtonListener:
     """background serial listener that converts Arduino messages to key codes.
 
-    Expects lines like: BUTTON2_RELEASED\n
-    When BUTTON2_RELEASED is received we inject the key code for character '1'.
+    
+    when BUTTON2_RELEASED is received inject the key code for character '1'
     """
 
-    def __init__(self, port: str | None, baud: int, callback):
+    def __init__(self, port: Optional[str], baud: int, callback):
         
         if port in (None, '', 'auto'):
             port = self._detect_port()
