@@ -7,9 +7,9 @@ MY_ID = 'nano_A'   #todo this has to be changed on each nano after cloning repo
 
 # testing on one nano, using loopback 
 PEER_NANO_INFO = {
-    'nano_A': {'ip': '127.0.0.1', 'name': 'Me'},       
-    'nano_B': {'ip': '127.0.0.1', 'name': 'Loopy_B'},  
-    'nano_C': {'ip': '127.0.0.1', 'name': 'Loopy_C'},  
+    'nano_A': {'ip': '127.0.0.1', 'name': 'Me'},
+    'nano_B': {'ip': '127.0.0.1', 'name': 'Loopy_B'},
+    'nano_C': {'ip': '127.0.0.1', 'name': 'Loopy_C'},
 }
 UDP_PORT          = 5005
 CAMERA_SRC        = 0
