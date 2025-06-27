@@ -22,6 +22,8 @@ class VideoStreamerApp:
         self.effects = EffectManager()
         self.running = True
         self.pool = concurrent.futures.ThreadPoolExecutor(max_workers=2)
+        # last captured local frame for LOCAL view
+        self._latest_local_frame = None
 
 
     # background threads
@@ -29,6 +31,7 @@ class VideoStreamerApp:
         while self.running:
             frame = self.cam.capture()
             if frame is not None:
+                self._latest_local_frame = frame          # keep for LOCAL view
                 self.pool.submit(self._encode_and_send, frame)
             time.sleep(0.001)
 
@@ -91,11 +94,18 @@ class VideoStreamerApp:
                     self.effects.start_glitch(ips, config.GLITCH_SEC)
 
             elif self.state.view_mode == 'SINGLE':
-                ip = self.state.current_single_ip()
-                name = self.state.current_single_name()
-                frame = self.proc.latest(ip) if ip else None
-                frame = self.effects.apply(ip, frame) if ip else frame
-                self.disp.show_single(frame, name)
+                if self.state.single_is_local():
+                    # show local camera with possible glitch overlay
+                    frame = self.effects.apply(AppState.LOCAL,
+                                               self._latest_local_frame)
+                    name  = config.PEER_NANO_INFO[config.MY_ID]['name']
+                    self.disp.show_single(frame, name)
+                else:
+                    ip   = self.state.current_single_ip()
+                    name = self.state.current_single_name()
+                    frame = self.proc.latest(ip)
+                    frame = self.effects.apply(ip, frame)
+                    self.disp.show_single(frame, name)
 
             else:  # DUAL
                 t = self.state.dual_targets()
