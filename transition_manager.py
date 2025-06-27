@@ -56,4 +56,10 @@ class TransitionManager:
         h, w = frame.shape[:2]
         if (w, h) != (w_target, h_target):
             frame = cv2.resize(frame, (w_target, h_target))
-        return frame, False 
+        return frame, False
+
+    def abort(self):
+        """immediately stop any playing clip"""
+        if self.cap is not None:
+            self.cap.release()
+            self.cap = None 

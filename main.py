@@ -69,7 +69,13 @@ class VideoStreamerApp:
                 if action and action.get('action') == 'QUIT':
                     self.running = False
                     break
-                if action and action.get('action') == 'SWITCH':
+                elif action and action.get('action') == 'SKIP':
+                    # user skipped transition clip; stop it and activate pending view
+                    self.trans.abort()
+                    self.state.activate_pending_view()
+                    ips = self.state.current_view_peer_ips()
+                    self.effects.start_glitch(ips, config.GLITCH_SEC)
+                elif action and action.get('action') == 'SWITCH':
                     next_mode   = action['next_mode']
                     next_target = action['next_target']
 

@@ -46,6 +46,9 @@ class AppState:
             return {'action': 'QUIT'}
 
         if act == 'rotate_view':
+            # if currently displaying a transition clip, allow key press to skip it
+            if self.view_mode == 'TRANSITION':
+                return {'action': 'SKIP'}
             next_mode, next_target = self._compute_next_view()
             if next_mode:
                 return {
